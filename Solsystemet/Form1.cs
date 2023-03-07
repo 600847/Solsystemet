@@ -204,7 +204,7 @@ namespace Solsystemet
         public PointF regnUtPosMoon(SpaceObject s, SpaceObject m)
         {
 
-            return new PointF(m.X * 500 + s.X * 500 + centerX + (s.ObjectRadius/50), m.Y + s.Y + centerY);
+            return new PointF(m.X * 500 + regnUtPos(s).X + regnUtStr(s), m.Y + s.Y + centerY);
         }
 
         public float regnUtStr(SpaceObject s)
