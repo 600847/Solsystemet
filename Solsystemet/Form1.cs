@@ -12,6 +12,18 @@ namespace Solsystemet
         {
             //Test push
             base.OnPaint(e);
+
+            //Tegneflaten
+            Graphics g = e.Graphics;
+
+            Brush b = new SolidBrush(Color.Red);
+
+            g.FillEllipse(b, 100, 100, 100, 100);
+
+
+
+
+
         }
     }
 }
