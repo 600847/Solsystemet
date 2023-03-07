@@ -10,6 +10,7 @@ namespace Solsystemet
 
         protected override void OnPaint(PaintEventArgs e)
         {
+            //Test push
             base.OnPaint(e);
         }
     }
