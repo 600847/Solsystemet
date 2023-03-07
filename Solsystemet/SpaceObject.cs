@@ -15,7 +15,7 @@ namespace SpaceSim
         public String name { get; }
 
         //In AU
-        public double OrbitalRadius { get; set; }
+        public float OrbitalRadius { get; set; }
 
         //In days
         public double OrbitalPeriod { get; set; }
@@ -29,14 +29,14 @@ namespace SpaceSim
         public Color ObjectColor { get; set; }
 
         //In AU
-        public double X { get; set; }
+        public float X { get; set; }
 
         //In AU
-        public double Y { get; set; }
+        public float Y { get; set; }
 
 
         //Måner til space objects
-        SpaceObject[] moons = new Moon[100];
+        public SpaceObject[] moons = new Moon[100];
         public SpaceObject this[int i]
         {
             get
@@ -77,8 +77,12 @@ namespace SpaceSim
                 //Radianer
 
                 double theta = 2 * Math.PI * (newDay / this.OrbitalPeriod);
-                this.X = this.OrbitalRadius * Math.Cos(theta);
-                this.Y = this.OrbitalRadius * Math.Sin(theta);
+                double currentX = this.OrbitalRadius * Math.Cos(theta);
+                double currentY = this.OrbitalRadius * Math.Sin(theta);
+
+                this.X = Convert.ToSingle(currentX);
+                this.Y = Convert.ToSingle(currentY);
+
 
                 this.Draw();
 
