@@ -10,13 +10,13 @@ namespace Solsystemet
         private float centerX;
         private float centerY;
 
-       private List<SpaceObject> solarSystem = new List<SpaceObject>
+        private List<SpaceObject> solarSystem = new List<SpaceObject>
             {
                 new Star("The sun")
                 {
                     X = 0,
                     Y = 0,
-                    ObjectRadius = 2000,
+                    ObjectRadius = 8000,
                     ObjectColor = Color.Yellow
                 },
                 new Planet("Mecury")
@@ -122,11 +122,13 @@ namespace Solsystemet
             this.WindowState = FormWindowState.Maximized;
             this.BackColor = Color.Black;
 
-            //Henter X og Y center kordinater
-            centerX = 925;
-            centerY = 500;
+            Screen primaryScreen = Screen.PrimaryScreen;
+            int screenWidth = primaryScreen.Bounds.Width;
+            int screenHeight = primaryScreen.Bounds.Height;
+            centerX = screenWidth / 2;
+            centerY = screenHeight / 2;
 
- 
+
 
             //Interval og animation
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
@@ -155,64 +157,101 @@ namespace Solsystemet
         {
         }
 
+        private void nullstillCenter()
+        {
+            Screen primaryScreen = Screen.PrimaryScreen;
+            int screenWidth = primaryScreen.Bounds.Width;
+            int screenHeight = primaryScreen.Bounds.Height;
+            centerX = screenWidth / 2;
+            centerY = screenHeight / 2;
+        }
+
 
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-
             //Tegneflaten
             Graphics g = e.Graphics;
-            
-            
-            Brush b;
-            PointF point;
-            float size;
+
+            //Variabler
+            float width;
+            PointF venstreEdgePunkt;
+            SolidBrush b;
+
+            //Størrelse forhold
+            //Definerer at radiusen på objektene skal være 200 ganger mindre
+            float str = 300;
+            //Definere avstandsforholdet mellom planetene
+            float skalering = 500;
+
             foreach (SpaceObject spaceObject in solarSystem)
             {
-                point = regnUtPos(spaceObject);
+                //Regner ut bredden på planeten som skal tegnes
+                width = regnUtBredde(spaceObject, str);
+                //X er helt til venstre av objektet. Slik at x blir da (centerX - width / 2)
+                venstreEdgePunkt = regnUtPos(spaceObject, width, skalering);
+                //Henter farge 
                 b = new SolidBrush(spaceObject.ObjectColor);
-                size = regnUtStr(spaceObject);
-                g.FillEllipse(b, point.X, point.Y - size / 2, size, size);
-
-                //Loop for måner
+                g.FillEllipse(b, venstreEdgePunkt.X, venstreEdgePunkt.Y - width / 2, width, width);
                 for (int i = 0; i < 100; i++)
                 {
                     //Sjekk om planet har måne
                     if (spaceObject.moons[i] != null)
                     {
-                        PointF pointM = regnUtPosMoon(spaceObject, spaceObject.moons[i]);
+                        //Finner center av parent planet
+                        centerX = venstreEdgePunkt.X + (width * 2);
+                        width = regnUtBredde(spaceObject.moons[i], str);
+                        venstreEdgePunkt = regnUtPos(spaceObject.moons[i], width, skalering);
                         b = new SolidBrush(spaceObject.moons[i].ObjectColor);
-                        float sizeM = regnUtStr(spaceObject.moons[i]);
-                         g.FillEllipse(b, pointM.X, pointM.Y - sizeM / 2, sizeM, sizeM);
+                        g.FillEllipse(b, venstreEdgePunkt.X, venstreEdgePunkt.Y - width / 2, width, width);
                     }
                     else
                     {
+                        nullstillCenter();
                         break;
                     }
-
                 }
-
             }
-            
-        }
 
-        public PointF regnUtPos(SpaceObject s)
+            //Skriver avstand og størrelse på planetene
+            string text1 = "One pixel in width is " + str + "km";
+            string text2 = "One pixel in distance from the center of planets is AU/" + skalering;
+            Font font1 = new Font("Arial", 12, FontStyle.Bold);
+            Font font2 = new Font("Arial", 12, FontStyle.Bold);
+            Brush brush = Brushes.White;
+
+            // Get the size of the text elements
+            SizeF size1 = e.Graphics.MeasureString(text1, font1);
+            SizeF size2 = e.Graphics.MeasureString(text2, font2);
+
+            // Calculate the position of the text elements
+            float x1 = 10;
+            float y1 = 10;
+            float x2 = x1;
+            float y2 = y1 + size1.Height;
+
+            // Draw the text elements
+            e.Graphics.DrawString(text1, font1, brush, x1, y1);
+            e.Graphics.DrawString(text2, font2, brush, x2, y2);
+        }
+        public PointF regnUtPos(SpaceObject s, float width, float skalering)
         {
-            return new PointF(s.X * 500 + centerX, s.Y + centerY);
+            return new PointF(centerX - (width / 2) + s.X * skalering, centerY);
         }
 
-        public PointF regnUtPosMoon(SpaceObject s, SpaceObject m)
+
+        public PointF regnUtPosMoon(SpaceObject s, float width, float skalering, SpaceObject m)
         {
-
-            return new PointF(m.X * 500 + regnUtPos(s).X + regnUtStr(s), m.Y + s.Y + centerY);
+            return new PointF();
         }
 
-        public float regnUtStr(SpaceObject s)
+        public float regnUtBredde(SpaceObject s, float str)
         {
-            return s.ObjectRadius / 100;
+            //Gjør om til diameter / width
+            return (s.ObjectRadius / str) * 2;
         }
 
-       
+
 
 
     }
