@@ -18,17 +18,20 @@ namespace Solsystemet
         private float str;
         private float skalering;
         private Boolean visInfo;
+        private int dagCount = 0;
+        private int dag = 0;
+        private int aar = 0;
 
         private System.Windows.Forms.Label mouseCoordinatesLabel = new Label();
 
 
         private List<SpaceObject> solarSystem = new List<SpaceObject>
             {
-                new Star("The sun")
+                new Star("The sun (1/100 size)")
                 {
                     X = 0,
                     Y = 0,
-                    ObjectRadius = 695700,
+                    ObjectRadius = 6957,
                     ObjectColor = Color.Yellow
                 },
                 new Planet("Mecury")
@@ -135,6 +138,8 @@ namespace Solsystemet
             this.KeyDown += new KeyEventHandler(Form1_KeyDown);
             this.MouseClick += new MouseEventHandler(control_MouseClick);
 
+            this.DoubleBuffered = true;
+
             //Setter fullscreen og bakgrunsfarge til svart
             this.WindowState = FormWindowState.Maximized;
             this.BackColor = Color.Black;
@@ -150,16 +155,16 @@ namespace Solsystemet
             currentX = centerX;
 
             //Størrelse forhold
-            str = 1500;
+            str = 800;
             //Definere avstandsforholdet mellom planetene
-            skalering = 15000;
+            skalering = 200;
 
             //Interval og animation
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
 
             //Setter interval på 100 ms
             timer.Interval = 100;
-            timer.Tick += Timer_Tick;
+            timer.Tick += DoTick;
             timer.Start();
 
             //Tegne event
@@ -177,14 +182,16 @@ private void control_MouseClick(object sender, MouseEventArgs e)
                     int center = screenWidth / 2;
                     centerX -= (e.X - center);
                     centerXm += (e.Location.X);
+                    
 
                     if (str == 1500)
                     {
-                        str = str / 6;             
+                        //str = str / 8;
+                        
                     }
                     else
                     {
-                        str = str * 6;
+                        //str = 1500;
                     }
                     Invalidate();
                 }
@@ -216,15 +223,31 @@ private void control_MouseClick(object sender, MouseEventArgs e)
                     centerY -= 100;
                     centerYm -= 100;
                     break;
+                case Keys.Space:
+
             }
 
-            Invalidate();
+            
         }
 
-        private void Timer_Tick(object? sender, EventArgs e)
+        private void DoTick(object? sender, EventArgs e)
         {
-            pos.X = pos.X + retning.X;
-            pos.Y = pos.Y + retning.Y;
+            if(dag >= 365)
+            {
+                aar++;
+                dag = 1;
+            }
+            foreach (SpaceObject planet in solarSystem)
+            {
+                if(planet.name != "The sun (1/100 size)")
+                {
+                    planet.RegnUtPos(dagCount);
+                }
+               
+            }
+            Invalidate();
+            dag++;
+            dagCount++;
 
             //Oppdatering av vindu
             
@@ -277,8 +300,15 @@ private void control_MouseClick(object sender, MouseEventArgs e)
                     {
                         //Finner center av parent planet
                         centerXm = venstreEdgePunkt.X + (width / 2);
+                        centerYm = venstreEdgePunkt.Y;
+                        
                         width = regnUtBredde(spaceObject.moons[i], str);
                         venstreEdgePunkt = regnUtPosMoon(spaceObject.moons[i], width, skalering);
+                        //Moontext
+                        info = "" + spaceObject.moons[i].name;
+                        size = e.Graphics.MeasureString(info, font1);
+                        g.DrawString(info, font1, brush, venstreEdgePunkt.X, (venstreEdgePunkt.Y - width / 2) * 0.9f);
+
                         b = new SolidBrush(spaceObject.moons[i].ObjectColor);
                         rect = new RectangleF(venstreEdgePunkt.X, venstreEdgePunkt.Y - width / 2, width, width);
                         plassering.Add(rect);
@@ -294,6 +324,7 @@ private void control_MouseClick(object sender, MouseEventArgs e)
             //Skriver avstand og størrelse på planetene
             string text1 = "One pixel in width is " + str + "km";
             string text2 = "One pixel in distance from the center of planets is AU/" + skalering;
+            string dagText = "År: " + aar + " Dag: " + dag;
 
             // Get the size of the text elements
             SizeF size1 = e.Graphics.MeasureString(text1, font1);
@@ -304,19 +335,22 @@ private void control_MouseClick(object sender, MouseEventArgs e)
             float y1 = 10;
             float x2 = x1;
             float y2 = y1 + size1.Height;
+            float x3 = x2;
+            float y3 = y2 + size2.Height;
 
             // Draw the text elements
             g.DrawString(text1, font1, brush, x1, y1);
             g.DrawString(text2, font1, brush, x2, y2);
+            g.DrawString(dagText, font1, brush, x3, y3);
         }
         public PointF regnUtPos(SpaceObject s, float width, float skalering)
         {
-            return new PointF(centerX - (width / 2) + s.X * skalering, centerY + s.Y);
+            return new PointF(centerX - (width / 2) + s.X * skalering, centerY + s.Y * skalering);
         }
 
         public PointF regnUtPosMoon(SpaceObject s, float width, float skalering)
         {
-            return new PointF(centerXm - (width / 2) + s.X * skalering, centerYm + s.Y);
+            return new PointF(centerXm - (width / 2) + s.X * skalering*20, centerYm + s.Y * skalering*20);
         }
 
         public float regnUtBredde(SpaceObject s, float str)
